@@ -1,6 +1,7 @@
 const jwt=require('jsonwebtoken');
 const UserRepository=require('../repository/user-repository');
 const {JWT_KEY}=require('../config/serverconfig');
+const bcrypt=require('bcrypt');
 class UserService{
     constructor(){
         this.userRepository=new UserRepository();
@@ -11,6 +12,25 @@ class UserService{
             return user;
         } catch (error) {
             console.log("wrong in service layer");
+            throw error;
+        }
+    }
+
+    async signIn(email,PlainPassword){
+        try {
+            //fetching user by email
+            const user =await this.userRepository.getByEmail(email);
+            //compare incoming plain password with main
+            const passwordMatch= this.checkPassword(PlainPassword,user.password)
+            if(!passwordMatch){
+                console.log("password wrong")
+                throw{ error:'incorrect password'}
+            }
+            //password match create token and send users
+            const newJWT=this.createToken({email:user.email,id:user.id})
+            return newJWT
+        } catch (error) {
+            console.log("something went wrong in sign in ");
             throw error;
         }
     }
@@ -31,6 +51,14 @@ class UserService{
             
         } catch (error) {
             console.log("something wrong in token validation",error);
+            throw error;
+        }
+    }
+    checkPassword(userInputPlainPassword,encryptedPassword){
+        try {
+            return bcrypt.compareSync(userInputPlainPassword,encryptedPassword);
+        } catch (error) {
+            console.log("something wrong in password comparision",error);
             throw error;
         }
     }
