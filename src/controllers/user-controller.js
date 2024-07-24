@@ -25,7 +25,6 @@ const create=async (req,res)=>{
              err:error
         });
     }
-
 }
 
 const signIn=async (req,res)=>{
@@ -47,7 +46,29 @@ const signIn=async (req,res)=>{
         });
     }
 }
+
+const isAuthenticated= async (req,res)=>{
+    try {
+        const token=req.headers['x-access-token']
+        const response = userService.verifyToken(token);
+        return res.status(200).json({
+            message:'User is authenticated and token is valid ',
+            data:response,
+            succees:true,
+             err:{}
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message:'something went wrong',
+            data:{},
+            succees:false,
+             err:error
+        });
+    }
+}
 module.exports={
     create,
-    signIn
+    signIn,
+    isAuthenticated
 }
